@@ -1,6 +1,20 @@
--- =====================================
+/* 
+SQL - E-Commerce Logistics Tracker
+
+Business Case:
+SwiftShip is a third-party logistics provider. They handle thousands of packages daily. Their current challenge is Lost in Transit items and identifying which delivery partners are underperforming.
+
+Problem Statement:
+Create a tracking database that identifies delayed shipments and ranks delivery partners based on their Success Rate.
+
+Tasks:
+1. Schema Design: Create the following tables:Partners, Shipments, DeliveryLogs
+2. Delayed Shipment Query: Write a query to find all shipments where - ActualDeliveryDate > PromisedDate
+3. Performance Ranking: Use COUNT and GROUP BY to show how many - Successful deliveries, Returned deliveries, each partner handled.
+4. Zone Filter: Identify the most popular Destination City for orders placed in the last 30 days to help the warehouse plan truck routes.
+*/
+
 -- 1. CREATE TABLES
--- =====================================
 
 CREATE TABLE Partners (
     partner_id INT PRIMARY KEY,
@@ -25,10 +39,7 @@ CREATE TABLE DeliveryLogs (
     FOREIGN KEY (shipment_id) REFERENCES Shipments(shipment_id)
 );
 
-
--- =====================================
--- 2. INSERT SAMPLE DATA
--- =====================================
+-- INSERT SAMPLE DATA
 
 INSERT INTO Partners VALUES
 (1, 'DHL'),
@@ -51,28 +62,19 @@ INSERT INTO DeliveryLogs VALUES
 (4, 104, 'Returned', '2026-04-06'),
 (5, 105, 'Delivered', '2026-04-03');
 
-
--- =====================================
 -- 3. DELAYED SHIPMENTS
--- =====================================
 
 SELECT shipment_id, destination_city, promised_date, actual_delivery_date
 FROM Shipments
 WHERE actual_delivery_date > promised_date;
 
-
--- =====================================
 -- 4. PARTNER PERFORMANCE (Delivered vs Returned)
--- =====================================
 
 SELECT partner_id, status, COUNT(*) AS total
 FROM Shipments
 GROUP BY partner_id, status;
 
-
--- =====================================
 -- 5. ZONE FILTER (Last 30 Days Popular City)
--- =====================================
 
 SELECT destination_city, COUNT(*) AS total_orders
 FROM Shipments
@@ -80,23 +82,10 @@ WHERE actual_delivery_date >= CURDATE() - INTERVAL 30 DAY
 GROUP BY destination_city
 ORDER BY total_orders DESC;
 
-
--- =====================================
 -- 6. PARTNER SCORECARD (Fewest Delays)
--- =====================================
 
 SELECT partner_id,
-       COUNT(CASE WHEN actual_delivery_date > promised_date THEN 1 END) AS delayed_shipments
+COUNT(CASE WHEN actual_delivery_date > promised_date THEN 1 END) AS delayed_shipments
 FROM Shipments
 GROUP BY partner_id
 ORDER BY delayed_shipments ASC;
-
-
--- =====================================
--- 7. BONUS: SUCCESS RATE (Optional)
--- =====================================
-
-SELECT partner_id,
-       SUM(CASE WHEN status = 'Delivered' THEN 1 ELSE 0 END) * 100.0 / COUNT(*) AS success_rate
-FROM Shipments
-GROUP BY partner_id;
