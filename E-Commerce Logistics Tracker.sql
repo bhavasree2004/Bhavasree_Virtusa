@@ -78,7 +78,6 @@ GROUP BY partner_id, status;
 
 SELECT destination_city, COUNT(*) AS total_orders
 FROM Shipments
-WHERE actual_delivery_date >= CURDATE() - INTERVAL 30 DAY
 GROUP BY destination_city
 ORDER BY total_orders DESC;
 
